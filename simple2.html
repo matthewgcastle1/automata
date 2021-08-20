@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        canvas {
+            padding: 0;
+            margin: auto;
+            display: block;
+        }
+
+        form {
+            float: left;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <h1> Cellular Automaton </h1>
+
+    <button onclick="step()" value="Step"> Step: </button>
+    <button onclick="reset()" value="Reset"> Reset: </button>
+
+    <canvas id="world" width="500" height="500" style="border:1px solid #c3c3c3;">
+        Your browser does not support the canvas element.
+    </canvas>
+
+    <p id="age"> Age =  </p>
+
+    <!-- <form float:"left">
+        <label for="numberOfSteps">Number of Steps : </label><br>
+        <input type="number" id="numberOfSteps" value=0><br>
+    </form> -->
+
+    <script>
+        // Change as much as possible just using these constants
+        // tweaking these will propagate through the code. Anything 
+        // else will not.
+        const side_length = 102;
+        const arr_size = side_length*side_length;
+        const num_types = 3;
+
+        // Key difference in this automaton is that we keep a copy of the old grid
+        // and use it for the computations. Then the old grid is updated at the end of the step.
+        // In simple.html there is only one grid and it is updated every time a cell is updated, and
+        // thus it produces more complicated and less predictable phenomena. On this one, the values
+        // are pulled from the previous grid and so it is easier to understand each step.
+        var gridOld = new Uint8ClampedArray(arr_size);
+        var grid = new Uint8ClampedArray(arr_size);
+        var age = 0;
+        var canvas = document.getElementById("world");
+        var worldview = canvas.getContext("2d");
+        var color = "rgb(";
+        reset();
+
+        // This function controls the automaton's initial state.
+        function initialize() {
+            for (i = 0; i < arr_size; ++i) {
+                // Tweak this for interesting starts
+                if(i%7 - i%5 >= 6) {
+                    grid[i] = 1;
+                } else {
+                    grid[i] = 0;
+                }
+            }
+            updateGridOld();
+            age = 0;
+        }
+
+        // This function controls how the automaton advances in time.
+        function step() {
+            var v = 0;
+            for (y = 0; y < side_length; ++y) {
+                for (x = 0; x < side_length; ++x) {
+                    v = get(x - 1, y) + get(x + 1, y) + get(x, y -1) + get(x, y + 1) + get(x, y);
+                    v = v % 3;
+                    set(x, y, v);
+                }
+            }
+            updateGridOld();
+            ++age;
+            render();
+            document.getElementById("age").innerHTML = "Age = " + age;
+        }
+
+        function get(x, y) {
+            if (x < 0 || x > (side_length - 1) || y < 0 || y > (side_length - 1)) {
+                return 0;
+            }
+            return gridOld[side_length * y + x];
+        }
+
+        function set(x, y, value) {
+            if (!(x < 0 || x > (side_length - 1) || y < 0 || y > (side_length - 1))) {
+                grid[side_length*y + x] = value;
+            }
+        }
+
+        function begin() {
+            var numSteps = document.getElementById("numberOfSteps").value;
+            for (i = 0; i < numSteps; ++i) {
+                step();
+            }
+            render();
+        }
+
+        function render() {
+            var v = 0;
+            for (y = 0; y < side_length; ++y) {
+                for (x = 0; x < side_length; ++x) {
+                    v = get(x, y);
+                    if(v == 0) {
+                        color = "blue";
+                    } else if(v == 1) {
+                        color = "white";
+                    } else if(v == 2) {
+                        color = "red";
+                    }
+                    worldview.fillStyle = color;
+                    worldview.fillRect(5*x, 5*y, 5, 5);
+                }
+            }
+        }
+
+        function stop() {
+
+        }
+
+        function reset() {
+            age = 0;
+            document.getElementById("age").innerHTML = "Age = " + age;
+            initialize();
+            render();
+        }
+
+        function updateGridOld() {
+            for(i = 0; i < arr_size; ++i) {
+                gridOld[i] = grid[i];
+            }
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        canvas {
+            padding: 0;
+            margin: auto;
+            display: block;
+        }
+
+        form {
+            float: left;
+        }
+    </style>
+</head>
+
+
+<body>
+
+    <h1> Cellular Automaton </h1>
+
+    <button onclick="step()" value="Step"> Step: </button>
+    <button onclick="reset()" value="Reset"> Reset: </button>
+
+    <canvas id="world" width="500" height="500" style="border:1px solid #c3c3c3;">
+        Your browser does not support the canvas element.
+    </canvas>
+
+    <p id="age"> Age =  </p>
+
+    <!-- <form float:"left">
+        <label for="numberOfSteps">Number of Steps : </label><br>
+        <input type="number" id="numberOfSteps" value=0><br>
+    </form> -->
+
+    <script>
+        var grid = new Uint8ClampedArray(10000);
+        var age = 0;
+        var canvas = document.getElementById("world");
+        var worldview = canvas.getContext("2d");
+        var color = "rgb(";
+        reset();
+
+        // This function controls the automaton's initial state.
+        function initialize() {
+            for (i = 0; i < 10000; ++i) {
+                grid[i] = 255 * Math.random();
+            }
+            age = 0;
+        }
+
+        // This function controls how the automaton advances in time.
+        function step() {
+            var v = 0;
+            for (y = 1; y < 99; ++y) {
+                for (x = 1; x < 99; ++x) {
+                    v = 2*get(x - 1, y) - 1*get(x, y - 1) + 2*get(x + 1, y) - 2*get(x, y + 1);
+                    v = v % 256;
+                    set(x, y, v);
+                }
+            }
+            ++age;
+            render();
+            document.getElementById("age").innerHTML = "Age = " + age;
+        }
+
+        function get(x, y) {
+            if (x < 0 || x > 99 || y < 0 || y > 99) {
+                return 0;
+            }
+            return grid[100 * y + x];
+        }
+
+        function set(x, y, value) {
+            if (!(x < 0 || x > 99 || y < 0 || y > 99)) {
+                grid[100*y + x] = value;
+            }
+        }
+
+        function begin() {
+            var numSteps = document.getElementById("numberOfSteps").value;
+            for (i = 0; i < numSteps; ++i) {
+                step();
+            }
+            render();
+        }
+
+        function render() {
+            var v = 0;
+            for (y = 0; y < 100; ++y) {
+                for (x = 0; x < 100; ++x) {
+                    v = get(x, y);
+                    color = "rgb(" + v + ", " + v + ", " + v + ")";
+                    worldview.fillStyle = color;
+                    worldview.fillRect(5*x, 5*y, 5, 5);
+                }
+            }
+        }
+
+        function stop() {
+
+        }
+
+        function reset() {
+            age = 0;
+            document.getElementById("age").innerHTML = "Age = " + age;
+            initialize();
+            render();
+        }
+
+    </script>
+</body>
+
+</html>
